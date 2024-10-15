@@ -681,6 +681,9 @@ class OMPAProblem(object):
         self.convertedparam_groups = convertedparam_groups
         self.standardize_by_watertypes = standardize_by_watertypes
 
+        # Add this line to include potential density
+        self.potential_density1000 = obs_df['Potential Density1000'] if 'Potential Density1000' in obs_df.columns else None
+
         self.num_converted_variables = (
             0 if len(convertedparam_groups)==0 else sum([
                 len(x.conversion_ratios) for x in convertedparam_groups]))
@@ -1047,7 +1050,7 @@ class OMPAProblem(object):
         return (fixed_x, endmember_fractions, converted_variables,
                 perobs_weighted_resid_sq, status)
 
-    def core_solve(self, A, b, num_converted_variables,
+      def core_solve(self, A, b, num_converted_variables,
                    pairs_matrix, endmember_usagepenalty,
                    conversion_sign_constraints, smoothness_lambda,
                    max_iter, verbose=False):
@@ -1087,6 +1090,22 @@ class OMPAProblem(object):
                   conversion_sign_constraints,
                   x[:,num_endmembers:]) >= 0)
 
+# Add the new density-dependent constraint
+        if self.potential_density1000 is not None:
+            # Assuming the order of water masses is [AW, LIW, WMDW]
+            aw_index = 0
+            liw_index = 1
+            wmdw_index = 2
+
+            density_mask = self.potential_density1000 < 33.56
+            
+            # For Potential Density1000 < 33.56: f_WMDW = 0, f_AW + f_LIW = 1
+            constraints.append(cp.multiply(density_mask, x[:, wmdw_index]) == 0)
+            constraints.append(cp.multiply(density_mask, 
+                               x[:, aw_index] + x[:, liw_index]) == density_mask)
+
+        prob = cp.Problem(obj, constraints)
+        prob.solve(verbose=verbose, max_iter=max_iter)
         prob = cp.Problem(obj, constraints)
         prob.solve(verbose=verbose, max_iter=max_iter)
         #settign verbose=True will generate more print statements and
