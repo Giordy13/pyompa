@@ -668,7 +668,7 @@ class OMPAProblem(object):
     """
         Core class for conducting OMPA analysis using cvxpy
     """     
-    def __init__(self, obs_df,
+        def __init__(self, obs_df,
                        param_names, #both conserved and converted params
                        convertedparam_groups,
                        param_weightings,
@@ -1050,7 +1050,7 @@ class OMPAProblem(object):
         return (fixed_x, endmember_fractions, converted_variables,
                 perobs_weighted_resid_sq, status)
 
-      def core_solve(self, A, b, num_converted_variables,
+    def core_solve(self, A, b, num_converted_variables,
                    pairs_matrix, endmember_usagepenalty,
                    conversion_sign_constraints, smoothness_lambda,
                    max_iter, verbose=False):
@@ -1065,7 +1065,6 @@ class OMPAProblem(object):
         # the +1 row represents O2 deficit, for remineralization purposes
         # A has dimensions of (end_members+num_converted_variables) X parameteres
         # b has dimensions of observations X parameters 
-        
         num_endmembers = len(A)-num_converted_variables
         x = cp.Variable(shape=(len(b), len(A)))
         obj = (cp.sum_squares(x@A - b) +
@@ -1073,13 +1072,10 @@ class OMPAProblem(object):
                             x[:,:num_endmembers],
                             endmember_usagepenalty) ))
         if (smoothness_lambda is not None):
-            #leave out O2 deficit column from the smoothness penality as it's
-            # on a bit of a different scale.
             obj += smoothness_lambda*cp.sum_squares(
                     pairs_matrix@x[:,:num_endmembers])
         obj = cp.Minimize(obj)
         
-        #leave out the last column as it's the conversion ratio
         constraints = [x[:,:num_endmembers] >= 0]
         if (self.sumtooneconstraint):
             constraints.append(cp.sum(x[:,:num_endmembers],axis=1)==1)
@@ -1090,7 +1086,7 @@ class OMPAProblem(object):
                   conversion_sign_constraints,
                   x[:,num_endmembers:]) >= 0)
 
-# Add the new density-dependent constraint
+        # Add the new density-dependent constraint
         if self.potential_density1000 is not None:
             # Assuming the order of water masses is [AW, LIW, WMDW]
             aw_index = 0
