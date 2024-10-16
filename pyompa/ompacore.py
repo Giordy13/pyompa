@@ -668,14 +668,14 @@ class OMPAProblem(object):
     """
         Core class for conducting OMPA analysis using cvxpy
     """     
-        def __init__(self, obs_df,
-                       param_names, #both conserved and converted params
-                       convertedparam_groups,
-                       param_weightings,
-                       endmembername_to_usagepenaltyfunc={},
-                       smoothness_lambda=None,
-                       sumtooneconstraint=True,
-                       standardize_by_watertypes=False):
+    def __init__(self, obs_df,
+                 param_names,  # both conserved and converted params
+                 convertedparam_groups,
+                 param_weightings,
+                 endmembername_to_usagepenaltyfunc={},
+                 smoothness_lambda=None,
+                 sumtooneconstraint=True,
+                 standardize_by_watertypes=False):
         self.obs_df = obs_df
         self.param_names = param_names
         self.convertedparam_groups = convertedparam_groups
@@ -1100,8 +1100,6 @@ class OMPAProblem(object):
             constraints.append(cp.multiply(density_mask, 
                                x[:, aw_index] + x[:, liw_index]) == density_mask)
 
-        prob = cp.Problem(obj, constraints)
-        prob.solve(verbose=verbose, max_iter=max_iter)
         prob = cp.Problem(obj, constraints)
         prob.solve(verbose=verbose, max_iter=max_iter)
         #settign verbose=True will generate more print statements and
