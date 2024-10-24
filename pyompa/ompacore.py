@@ -1093,9 +1093,9 @@ class OMPAProblem(object):
             liw_index = 1
             wmdw_index = 2
 
-            density_mask = self.potential_density1000 < 33.42
+            density_mask = self.potential_density1000 < 33.44
             
-            # For Potential Density1000 < 33.42: f_WMDW = 0, f_AW + f_LIW = 1
+            # For Potential Density1000 < 33.44: f_WMDW = 0, f_AW + f_LIW = 1
             constraints.append(cp.multiply(density_mask, x[:, wmdw_index]) == 0)
             constraints.append(cp.multiply(density_mask, 
                                x[:, aw_index] + x[:, liw_index]) == density_mask)
