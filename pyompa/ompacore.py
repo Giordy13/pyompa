@@ -685,6 +685,12 @@ class OMPAProblem(object):
 
         # Add this line to include potential density
         self.potential_density1000 = obs_df['Potential Density1000'] if 'Potential Density1000' in obs_df.columns else None
+        
+        # Constraints list for the optimization problem
+        self.constraints = []
+        
+        # Add the density-dependent constraint
+        self.add_density_constraint()
 
         self.num_converted_variables = (
             0 if len(convertedparam_groups)==0 else sum([
@@ -1088,19 +1094,39 @@ class OMPAProblem(object):
                   conversion_sign_constraints,
                   x[:,num_endmembers:]) >= 0)
 
-        # Add the new density-dependent constraint
+        def add_density_constraint(self):
+        """
+        Adds or updates the density-dependent constraint based on the current density threshold.
+        """
         if self.potential_density1000 is not None:
             # Assuming the order of water masses is [AW, LIW, WMDW]
             aw_index = 0
             liw_index = 1
             wmdw_index = 2
 
+            # Create a boolean mask based on the density threshold
             density_mask = self.potential_density1000 < self.density_threshold
             
-            # For Potential Density1000 < 33.44: f_WMDW = 0, f_AW + f_LIW = 1
-            constraints.append(cp.multiply(density_mask, x[:, wmdw_index]) == 0)
-            constraints.append(cp.multiply(density_mask, 
-                               x[:, aw_index] + x[:, liw_index]) == density_mask)
+            # Clear existing density constraints if any
+            self.constraints = [c for c in self.constraints if "density_constraint" not in c.name]
+
+            # Define new constraints with current threshold
+            f_wmdw_constraint = cp.multiply(density_mask, x[:, wmdw_index]) == 0
+            f_aw_liw_constraint = cp.multiply(density_mask, x[:, aw_index] + x[:, liw_index]) == density_mask
+            
+            # Name constraints to identify them for replacement
+            f_wmdw_constraint.name = "density_constraint_wmdw"
+            f_aw_liw_constraint.name = "density_constraint_aw_liw"
+            
+            # Add constraints
+            self.constraints.extend([f_wmdw_constraint, f_aw_liw_constraint])
+
+    def update_density_threshold(self, new_threshold):
+        """
+        Update the density threshold and reapply the density-dependent constraint.
+        """
+        self.density_threshold = new_threshold
+        self.add_density_constraint()  # Re-apply constraints with the new threshold
 
         prob = cp.Problem(obj, constraints)
         prob.solve(verbose=verbose, max_iter=max_iter)
