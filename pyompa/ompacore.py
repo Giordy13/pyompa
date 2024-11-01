@@ -669,14 +669,14 @@ class OMPAProblem(object):
         Core class for conducting OMPA analysis using cvxpy
     """     
     def __init__(self, obs_df,
-                 param_names,  # both conserved and converted params
+                 param_names,
                  convertedparam_groups,
                  param_weightings,
                  endmembername_to_usagepenaltyfunc={},
                  smoothness_lambda=None,
                  sumtooneconstraint=True,
                  standardize_by_watertypes=False,
-                 density_threshold=33.42):  #Added this parameter
+                 density_threshold=33.44):  # <- Here is the density_threshold parameter
         self.obs_df = obs_df
         self.param_names = param_names
         self.convertedparam_groups = convertedparam_groups
