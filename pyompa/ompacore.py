@@ -675,11 +675,13 @@ class OMPAProblem(object):
                  endmembername_to_usagepenaltyfunc={},
                  smoothness_lambda=None,
                  sumtooneconstraint=True,
-                 standardize_by_watertypes=False):
+                 standardize_by_watertypes=False,
+                 density_threshold=33.42):  #Added this parameter
         self.obs_df = obs_df
         self.param_names = param_names
         self.convertedparam_groups = convertedparam_groups
         self.standardize_by_watertypes = standardize_by_watertypes
+        self.density_threshold = density_threshold  # Store the threshold value
 
         # Add this line to include potential density
         self.potential_density1000 = obs_df['Potential Density1000'] if 'Potential Density1000' in obs_df.columns else None
@@ -1093,7 +1095,7 @@ class OMPAProblem(object):
             liw_index = 1
             wmdw_index = 2
 
-            density_mask = self.potential_density1000 < 33.44
+            density_mask = self.potential_density1000 < self.density_threshold
             
             # For Potential Density1000 < 33.44: f_WMDW = 0, f_AW + f_LIW = 1
             constraints.append(cp.multiply(density_mask, x[:, wmdw_index]) == 0)
