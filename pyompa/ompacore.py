@@ -1099,7 +1099,7 @@ class OMPAProblem(object):
             constraints.append(x[density_mask, wmdw_index] == 0)
           
             # For Potential Density1000 < 33.44: f_WMDW = 0, f_AW + f_LIW = 1
-            constraints.append(x[density_mask, aw_index] + x[desnity_mask, liw_index] == 1)
+            constraints.append(x[density_mask, aw_index] + x[density_mask, liw_index] == 1)
 
         prob = cp.Problem(obj, constraints)
         prob.solve(verbose=verbose, max_iter=max_iter)
