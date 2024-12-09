@@ -1102,10 +1102,10 @@ class OMPAProblem(object):
             # 2. Sum of AW and LIW must be 1
             
             # Strictly enforce F_WMDW = 0 where density < 33.44
-            constraints.append(x[density_mask, wmdw_index] == 0)
+            constraints.append(x[low_density_mask, wmdw_index] == 0)
           
             # For Potential Density1000 < 33.44: f_WMDW = 0, f_AW + f_LIW = 1
-            constraints.append(x[density_mask, aw_index] + x[density_mask, liw_index] == 1)
+            constraints.append(x[low_density_mask, aw_index] + x[low_density_mask, liw_index] == 1)
           
             # For high density regions (>= 33.424):
             # No Atlantic Water
