@@ -1092,14 +1092,24 @@ class OMPAProblem(object):
             aw_index = 0
             liw_index = 1
             wmdw_index = 2
-
-            density_mask = self.potential_density1000 < 33.424
+          
+            # Create density masks
+            low_density_mask = self.potential_density1000 < 33.424
+            high_density_mask = self.potential_density1000 >= 33.424
+          
+            # For low density regions (< 33.424):
+            # 1. No WMDW
+            # 2. Sum of AW and LIW must be 1
             
             # Strictly enforce F_WMDW = 0 where density < 33.44
             constraints.append(x[density_mask, wmdw_index] == 0)
           
             # For Potential Density1000 < 33.44: f_WMDW = 0, f_AW + f_LIW = 1
             constraints.append(x[density_mask, aw_index] + x[density_mask, liw_index] == 1)
+          
+            # For high density regions (>= 33.424):
+            # No Atlantic Water
+            constraints.append(x[high_density_mask, aw_index] == 0)
 
         prob = cp.Problem(obj, constraints)
         prob.solve(verbose=verbose, max_iter=max_iter)
