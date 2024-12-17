@@ -1094,8 +1094,8 @@ class OMPAProblem(object):
             wmdw_index = 2
           
             # Create density masks
-            low_density_mask = self.potential_density1000 < 33.4275
-            high_density_mask = self.potential_density1000 >= 33.4275
+            low_density_mask = self.potential_density1000 < 33.44
+            high_density_mask = self.potential_density1000 >= 33.44
           
             # For low density regions (< 33.424):
             # 1. No WMDW
