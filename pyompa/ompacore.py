@@ -1109,7 +1109,9 @@ class OMPAProblem(object):
           
             # For high density regions (>= 33.424):
             # No Atlantic Water
+            # 2. Sum of LIW and WMDW must be 1
             constraints.append(x[high_density_mask, aw_index] == 0)
+            constraints.append(x[high_density_mask, liw_index] + x[high_density_mask, wmdw_index] == 1)  # New constraint
 
         prob = cp.Problem(obj, constraints)
         prob.solve(verbose=verbose, max_iter=max_iter)
