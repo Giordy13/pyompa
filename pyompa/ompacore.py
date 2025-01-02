@@ -1093,7 +1093,7 @@ class OMPAProblem(object):
             liw_index = 1
             wmdw_index = 2
             # Define transition margin
-            transition_margin = 0.02  # Adjustable
+            transition_margin = 0.001  # Adjustable
     
             # Create density masks with transition zones
             transition_density = 33.44  # Your original threshold
