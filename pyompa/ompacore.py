@@ -1103,7 +1103,7 @@ class OMPAProblem(object):
         aw_mask = self.potential_density1000 >= aw_limit
         wmdw_mask = self.potential_density1000 <= wmdw_limit
         liw_wmdw_mask = ((self.potential_density1000 >= (liw_wmdw_transition - transition_margin)) & 
-                         (self.potential_density1000 <= (liw_wmdw_transition + transition_margin)))
+                 (self.potential_density1000 <= (liw_wmdw_transition + transition_margin)))
 
         # Main water mass constraints
         constraints.append(x[aw_mask, aw_index] == 0)  # No AW above aw_limit
