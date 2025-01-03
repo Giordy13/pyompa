@@ -1092,33 +1092,35 @@ class OMPAProblem(object):
             aw_index = 0
             liw_index = 1
             wmdw_index = 2
+            
             # Define transition margin
-            transition_margin = 0.008  # Adjustable
+            aw_limit = 33.4275    # Above this, no AW
+            liw_wmdw_transition = 33.44  # LIW-WMDW transition boundary
+            wmdw_limit = 33.46    # Below this, no WMDW
+            transition_margin = 0.008  # For smooth transition 
     
-            # Create density masks with transition zones
-            transition_density = 33.44  # Your original threshold
-    
-            # Define masks for different zones
-            pure_liw_mask = self.potential_density1000 < (transition_density - transition_margin)
-            transition_mask = ((self.potential_density1000 >= (transition_density - transition_margin)) & 
-                      (self.potential_density1000 <= (transition_density + transition_margin)))
-            pure_wmdw_mask = self.potential_density1000 > (transition_density + transition_margin)
-    
-            # Pure LIW zone constraints
-            constraints.append(x[pure_liw_mask, wmdw_index] == 0)
-            constraints.append(x[pure_liw_mask, liw_index] + x[pure_liw_mask, aw_index] == 1)
-    
-            # Pure WMDW zone constraints
-            constraints.append(x[pure_wmdw_mask, aw_index] == 0)
-            constraints.append(x[pure_wmdw_mask, liw_index] + x[pure_wmdw_mask, wmdw_index] == 1)
-    
-            # Transition zone - allow gradual mixing
-            # Calculate mixing ratio based on position in transition zone
-            mixing_ratio = (self.potential_density1000[transition_mask] - (transition_density - transition_margin)) / (2 * transition_margin)
-    
-            # Apply weighted constraints in transition zone
-            constraints.append(x[transition_mask, aw_index] == 0)  # Still no AW in transition
-            constraints.append(x[transition_mask, liw_index] + x[transition_mask, wmdw_index] == 1)  # Maintain mass conservation
+            # Create density masks
+            aw_mask = self.potential_density1000 >= aw_limit
+            wmdw_mask = self.potential_density1000 <= wmdw_limit
+   
+             # Transition zone mask
+             liw_wmdw_mask = ((self.potential_density1000 >= (liw_wmdw_transition - transition_margin)) & 
+                    (self.potential_density1000 <= (liw_wmdw_transition + transition_margin)))
+   
+             # Main water mass constraints
+             constraints.append(x[aw_mask, aw_index] == 0)  # No AW above aw_limit
+             constraints.append(x[wmdw_mask, wmdw_index] == 0)  # No WMDW below wmdw_limit
+   
+             # Mass conservation constraints
+             constraints.append(x[aw_mask, liw_index] + x[aw_mask, wmdw_index] == 1)  # Above AW limit
+             constraints.append(x[wmdw_mask, aw_index] + x[wmdw_mask, liw_index] == 1)  # Below WMDW limit
+   
+              # Transition zone handling
+              mixing_ratio = (self.potential_density1000[liw_wmdw_mask] - (liw_wmdw_transition - transition_margin)) / (2 * transition_margin)
+   
+               # Transition zone constraints
+               constraints.append(x[liw_wmdw_mask, aw_index] == 0)  # No AW in transition
+               constraints.append(x[liw_wmdw_mask, liw_index] + x[liw_wmdw_mask, wmdw_index] == 1)  # Mass conservation in transition
 
         prob = cp.Problem(obj, constraints)
         prob.solve(verbose=verbose, max_iter=max_iter)
