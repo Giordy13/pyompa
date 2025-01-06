@@ -1095,7 +1095,7 @@ class OMPAProblem(object):
     
             # Define transition margin
             aw_limit = 33.4275    # Above this, no AW
-            liw_wmdw_transition = 33.43  # LIW-WMDW transition boundary
+            liw_wmdw_transition = 33.41  # LIW-WMDW transition boundary
             wmdw_limit = 33.4275    # Below this, no WMDW
             transition_margin = 0.07  # For smooth transition 
 
