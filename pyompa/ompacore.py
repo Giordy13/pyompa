@@ -1093,43 +1093,32 @@ class OMPAProblem(object):
             liw_index = 1
             wmdw_index = 2
           
-            # Define transition margins
+            # Define transition margin
             aw_limit = 33.40    # Above this, no AW
             liw_wmdw_transition = 33.43  # LIW-WMDW transition boundary
             wmdw_limit = 33.43    # Below this, no WMDW
-            transition_margin_upper = 0.10  # Wider margin above
-            transition_margin_lower = 0.08  # Narrower margin below
-    
+            transition_margin = 0.09  # For smooth transition 
+
             # Create density masks
             aw_mask = self.potential_density1000 >= aw_limit
             wmdw_mask = self.potential_density1000 <= wmdw_limit
-            liw_wmdw_mask = ((self.potential_density1000 >= (liw_wmdw_transition - transition_margin_lower)) & 
-                             (self.potential_density1000 <= (liw_wmdw_transition + transition_margin_upper)))
-    
+            liw_wmdw_mask = ((self.potential_density1000 >= (liw_wmdw_transition - transition_margin)) & 
+                         (self.potential_density1000 <= (liw_wmdw_transition + transition_margin)))
+
             # Main water mass constraints
             constraints.append(x[aw_mask, aw_index] == 0)  # No AW above aw_limit
             constraints.append(x[wmdw_mask, wmdw_index] == 0)  # No WMDW below wmdw_limit
-    
+
             # Mass conservation constraints
             constraints.append(x[aw_mask, liw_index] + x[aw_mask, wmdw_index] == 1)  # Above AW limit
             constraints.append(x[wmdw_mask, aw_index] + x[wmdw_mask, liw_index] == 1)  # Below WMDW limit
-    
-            # Asymmetric transition zone handling
-            upper_zone = self.potential_density1000 > liw_wmdw_transition
-            lower_zone = self.potential_density1000 <= liw_wmdw_transition
-    
-            mixing_ratio = np.zeros_like(self.potential_density1000)
-            mixing_ratio[upper_zone] = ((self.potential_density1000[upper_zone] - liw_wmdw_transition) / 
-                               transition_margin_upper)
-            mixing_ratio[lower_zone] = ((self.potential_density1000[lower_zone] - 
-                               (liw_wmdw_transition - transition_margin_lower)) / 
-                               transition_margin_lower)
-            mixing_ratio = np.clip(mixing_ratio, 0, 1)
-    
+
+            # Transition zone handling
+            mixing_ratio = (self.potential_density1000[liw_wmdw_mask] - (liw_wmdw_transition - transition_margin)) / (2 * transition_margin)
+
             # Transition zone constraints
             constraints.append(x[liw_wmdw_mask, aw_index] == 0)  # No AW in transition
-            constraints.append(x[liw_wmdw_mask, liw_index] + x[liw_wmdw_mask, wmdw_index] == 1)  # Mass conservation
-            constraints.append(x[liw_wmdw_mask, wmdw_index] >= mixing_ratio[liw_wmdw_mask])  # Progressive mixing
+            constraints.append(x[liw_wmdw_mask, liw_index] + x[liw_wmdw_mask, wmdw_index] == 1)  # Mass conservation in transition
 
         prob = cp.Problem(obj, constraints)
         prob.solve(verbose=verbose, max_iter=max_iter)
