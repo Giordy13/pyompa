@@ -1098,7 +1098,7 @@ class OMPAProblem(object):
             use_local_transitions = True  # Flag to toggle location-dependent transitions
 		
             if use_local_transitions:
-		# Location-dependent transitions
+	       # Location-dependent transitions
                longitude_mask = ((self.longitude >= 4.5) & (self.longitude <= 5.2)) | \
                         	((self.longitude >= 6.8) & (self.longitude <= 7.2))
                liw_wmdw_transition = np.where(longitude_mask, 33.435, 33.4425)
