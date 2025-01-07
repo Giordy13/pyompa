@@ -1094,10 +1094,10 @@ class OMPAProblem(object):
             wmdw_index = 2
     
             # Define transition margin
-            aw_limit = 33.28    # Above this, no AW
-            liw_wmdw_transition = 33.43  # LIW-WMDW transition boundary
-            wmdw_limit = 33.43    # Below this, no WMDW
-            transition_margin = 0.07  # For smooth transition 
+            aw_limit = 33.30    # Above this, no AW
+            liw_wmdw_transition = 33.41  # LIW-WMDW transition boundary
+            wmdw_limit = 33.41    # Below this, no WMDW
+            transition_margin = 0.05  # For smooth transition 
 
             # Create density masks
             aw_mask = self.potential_density1000 >= aw_limit
