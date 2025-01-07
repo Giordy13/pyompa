@@ -1104,6 +1104,10 @@ class OMPAProblem(object):
 	       # Location-dependent transitions
                longitude_mask = ((self.longitude >= 4.5) & (self.longitude <= 5.2)) | \
                         	((self.longitude >= 6.8) & (self.longitude <= 7.2))
+	       # Ensure all arrays have matching shapes
+               liw_wmdw_transition = np.full_like(self.potential_density1000, 33.4425)
+               liw_wmdw_transition[longitude_mask] = 33.435
+
                liw_wmdw_transition = np.where(longitude_mask, 33.435, 33.4425)
                transition_margin = np.where(longitude_mask, 0.08, 0.07)
                wmdw_limit = np.where(longitude_mask, 33.435, 33.4425)
