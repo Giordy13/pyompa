@@ -1088,6 +1088,9 @@ class OMPAProblem(object):
 
     # Add the new density-dependent constraint
         if self.potential_density1000 is not None:
+	    # Get longitude from the input data
+            self.longitude = self.obs_df['Longitude'].values
+		
             # Assuming the order of water masses is [AW, LIW, WMDW]
             aw_index = 0
             liw_index = 1
