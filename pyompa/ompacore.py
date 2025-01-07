@@ -1106,9 +1106,9 @@ class OMPAProblem(object):
                wmdw_limit = np.where(longitude_mask, 33.435, 33.4425)
             else:
 		# Use single values
-		liw_wmdw_transition = 33.4425  # LIW-WMDW transition boundary
-		wmdw_limit = 33.4425    # Below this, no WMDW
-		transition_margin = 0.07  # For smooth transition 
+                liw_wmdw_transition = 33.4425  # LIW-WMDW transition boundary
+                wmdw_limit = 33.4425    # Below this, no WMDW
+                transition_margin = 0.07  # For smooth transition 
 
             # Create density masks
             aw_mask = self.potential_density1000 >= aw_limit
