@@ -1086,39 +1086,50 @@ class OMPAProblem(object):
                   conversion_sign_constraints,
                   x[:,num_endmembers:]) >= 0)
 
-        # Add the new density-dependent constraint
-        if self.potential_density1000 is not None:
-            # Assuming the order of water masses is [AW, LIW, WMDW]
-            aw_index = 0
-            liw_index = 1
-            wmdw_index = 2
-          
-            # Define transition margin
-            aw_limit = 33.40    # Above this, no AW
-            liw_wmdw_transition = 33.4425  # LIW-WMDW transition boundary
-            wmdw_limit = 33.4425    # Below this, no WMDW
-            transition_margin = 0.07  # For smooth transition 
+    # Add the new density-dependent constraint
+		if self.potential_density1000 is not None:
+			  # Assuming the order of water masses is [AW, LIW, WMDW]
+			  aw_index = 0
+			  liw_index = 1
+			  wmdw_index = 2
 
-            # Create density masks
-            aw_mask = self.potential_density1000 >= aw_limit
-            wmdw_mask = self.potential_density1000 <= wmdw_limit
-            liw_wmdw_mask = ((self.potential_density1000 >= (liw_wmdw_transition - transition_margin)) & 
-                         (self.potential_density1000 <= (liw_wmdw_transition + transition_margin)))
+			  # Define base parameters
+			  aw_limit = 33.40    # Above this, no AW
+			  use_local_transitions = True  # Flag to toggle location-dependent transitions
 
-            # Main water mass constraints
-            constraints.append(x[aw_mask, aw_index] == 0)  # No AW above aw_limit
-            constraints.append(x[wmdw_mask, wmdw_index] == 0)  # No WMDW below wmdw_limit
+			if use_local_transitions:
+				  # Location-dependent transitions
+				  longitude_mask = ((self.longitude >= 4.5) & (self.longitude <= 5.2)) | \
+							             ((self.longitude >= 6.8) & (self.longitude <= 7.2))
+				  liw_wmdw_transition = np.where(longitude_mask, 33.435, 33.4425)
+				  transition_margin = np.where(longitude_mask, 0.08, 0.07)
+				  wmdw_limit = np.where(longitude_mask, 33.435, 33.4425)
+			else:
+				  # Use single values
+				  liw_wmdw_transition = 33.4425  # LIW-WMDW transition boundary
+				  wmdw_limit = 33.4425    # Below this, no WMDW
+				  transition_margin = 0.07  # For smooth transition 
 
-            # Mass conservation constraints
-            constraints.append(x[aw_mask, liw_index] + x[aw_mask, wmdw_index] == 1)  # Above AW limit
-            constraints.append(x[wmdw_mask, aw_index] + x[wmdw_mask, liw_index] == 1)  # Below WMDW limit
+			# Create density masks
+			aw_mask = self.potential_density1000 >= aw_limit
+			wmdw_mask = self.potential_density1000 <= wmdw_limit
+			liw_wmdw_mask = ((self.potential_density1000 >= (liw_wmdw_transition - transition_margin)) & 
+                    (self.potential_density1000 <= (liw_wmdw_transition + transition_margin)))
 
-            # Transition zone handling
-            mixing_ratio = (self.potential_density1000[liw_wmdw_mask] - (liw_wmdw_transition - transition_margin)) / (2 * transition_margin)
+			# Main water mass constraints
+			constraints.append(x[aw_mask, aw_index] == 0)  # No AW above aw_limit
+			constraints.append(x[wmdw_mask, wmdw_index] == 0)  # No WMDW below wmdw_limit
 
-            # Transition zone constraints
-            constraints.append(x[liw_wmdw_mask, aw_index] == 0)  # No AW in transition
-            constraints.append(x[liw_wmdw_mask, liw_index] + x[liw_wmdw_mask, wmdw_index] == 1)  # Mass conservation in transition
+			# Mass conservation constraints
+			constraints.append(x[aw_mask, liw_index] + x[aw_mask, wmdw_index] == 1)  # Above AW limit
+			constraints.append(x[wmdw_mask, aw_index] + x[wmdw_mask, liw_index] == 1)  # Below WMDW limit
+
+			# Transition zone handling
+			mixing_ratio = (self.potential_density1000[liw_wmdw_mask] - (liw_wmdw_transition - transition_margin)) / (2 * transition_margin)
+
+			# Transition zone constraints
+			constraints.append(x[liw_wmdw_mask, aw_index] == 0)  # No AW in transition
+			constraints.append(x[liw_wmdw_mask, liw_index] + x[liw_wmdw_mask, wmdw_index] == 1)  # Mass conservation in transition
 
         prob = cp.Problem(obj, constraints)
         prob.solve(verbose=verbose, max_iter=max_iter)
