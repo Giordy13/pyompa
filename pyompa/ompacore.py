@@ -1099,11 +1099,11 @@ class OMPAProblem(object):
 		
             if use_local_transitions:
 		# Location-dependent transitions
-        	longitude_mask = ((self.longitude >= 4.5) & (self.longitude <= 5.2)) | \
+               longitude_mask = ((self.longitude >= 4.5) & (self.longitude <= 5.2)) | \
                         	((self.longitude >= 6.8) & (self.longitude <= 7.2))
-        	liw_wmdw_transition = np.where(longitude_mask, 33.435, 33.4425)
-        	transition_margin = np.where(longitude_mask, 0.08, 0.07)
-        	wmdw_limit = np.where(longitude_mask, 33.435, 33.4425)
+               liw_wmdw_transition = np.where(longitude_mask, 33.435, 33.4425)
+               transition_margin = np.where(longitude_mask, 0.08, 0.07)
+               wmdw_limit = np.where(longitude_mask, 33.435, 33.4425)
 	    else:
 		# Use single values
 		liw_wmdw_transition = 33.4425  # LIW-WMDW transition boundary
