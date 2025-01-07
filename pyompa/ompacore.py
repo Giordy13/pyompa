@@ -1104,7 +1104,7 @@ class OMPAProblem(object):
                liw_wmdw_transition = np.where(longitude_mask, 33.435, 33.4425)
                transition_margin = np.where(longitude_mask, 0.08, 0.07)
                wmdw_limit = np.where(longitude_mask, 33.435, 33.4425)
-	    else:
+            else:
 		# Use single values
 		liw_wmdw_transition = 33.4425  # LIW-WMDW transition boundary
 		wmdw_limit = 33.4425    # Below this, no WMDW
