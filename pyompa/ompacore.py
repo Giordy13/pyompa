@@ -1095,8 +1095,8 @@ class OMPAProblem(object):
     
             # Define transitions for both boundaries
             aw_limit = 33.385    # Above this, no AW
-            liw_wmdw_transition = 33.44  # LIW-WMDW transition boundary
-            wmdw_limit = 33.44    # Below this, no WMDW
+            liw_wmdw_transition = 33.46  # LIW-WMDW transition boundary
+            wmdw_limit = 33.46    # Below this, no WMDW
    
             # Define transition margins
             aw_liw_margin = 0.05   # Margin for AW-LIW transition
