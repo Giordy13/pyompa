@@ -1103,36 +1103,29 @@ class OMPAProblem(object):
             liw_wmdw_margin = 0.095  # Margin for LIW-WMDW transition
    
             # Create density masks
-            pure_aw_mask = self.potential_density1000 < (aw_limit - aw_liw_margin)
+            aw_mask = self.potential_density1000 >= aw_limit
+            wmdw_mask = self.potential_density1000 <= wmdw_limit
+   
+            # Transition masks
             aw_liw_mask = ((self.potential_density1000 >= (aw_limit - aw_liw_margin)) & 
                            (self.potential_density1000 <= (aw_limit + aw_liw_margin)))
-            pure_liw_mask = ((self.potential_density1000 > (aw_limit + aw_liw_margin)) &
-                             (self.potential_density1000 < (liw_wmdw_transition - liw_wmdw_margin)))
+   
             liw_wmdw_mask = ((self.potential_density1000 >= (liw_wmdw_transition - liw_wmdw_margin)) & 
                              (self.potential_density1000 <= (liw_wmdw_transition + liw_wmdw_margin)))
-            pure_wmdw_mask = self.potential_density1000 > (liw_wmdw_transition + liw_wmdw_margin)
    
-            # Main water mass constraints for pure zones
-            constraints.append(x[pure_aw_mask, liw_index] == 0)  # No LIW in pure AW
-            constraints.append(x[pure_aw_mask, wmdw_index] == 0)  # No WMDW in pure AW
+            # Main water mass constraints
+            constraints.append(x[aw_mask, aw_index] == 0)  # No AW above aw_limit
+            constraints.append(x[wmdw_mask, wmdw_index] == 0)  # No WMDW below wmdw_limit
    
-            constraints.append(x[pure_liw_mask, aw_index] == 0)  # No AW in pure LIW
-            constraints.append(x[pure_liw_mask, wmdw_index] == 0)  # No WMDW in pure LIW
+            # Mass conservation constraints
+            constraints.append(x[aw_mask, liw_index] + x[aw_mask, wmdw_index] == 1)  # Above AW limit
+            constraints.append(x[wmdw_mask, aw_index] + x[wmdw_mask, liw_index] == 1)  # Below WMDW limit
    
-            constraints.append(x[pure_wmdw_mask, aw_index] == 0)  # No AW in pure WMDW
-            constraints.append(x[pure_wmdw_mask, liw_index] == 0)  # No LIW in pure WMDW
-   
-            # Mass conservation in pure zones
-            constraints.append(x[pure_aw_mask, aw_index] == 1)  # Pure AW
-            constraints.append(x[pure_liw_mask, liw_index] == 1)  # Pure LIW
-            constraints.append(x[pure_wmdw_mask, wmdw_index] == 1)  # Pure WMDW
-   
-            # AW-LIW transition zone handling
+            # AW-LIW transition handling
             aw_liw_ratio = (self.potential_density1000[aw_liw_mask] - (aw_limit - aw_liw_margin)) / (2 * aw_liw_margin)
             constraints.append(x[aw_liw_mask, wmdw_index] == 0)  # No WMDW in AW-LIW transition
-            constraints.append(x[aw_liw_mask, aw_index] + x[aw_liw_mask, liw_index] == 1)  # Mass conservation
    
-            # LIW-WMDW transition zone handling
+            # LIW-WMDW transition handling
             liw_wmdw_ratio = (self.potential_density1000[liw_wmdw_mask] - (liw_wmdw_transition - liw_wmdw_margin)) / (2 * liw_wmdw_margin)
             constraints.append(x[liw_wmdw_mask, aw_index] == 0)  # No AW in LIW-WMDW transition
             constraints.append(x[liw_wmdw_mask, liw_index] + x[liw_wmdw_mask, wmdw_index] == 1)  # Mass conservation
