@@ -1095,32 +1095,23 @@ class OMPAProblem(object):
     
             # Define transitions for both boundaries - adjusted based on salinity structure
             aw_limit = 33.395    # Above this, no AW (adjusted up based on sharp transition)
-            liw_wmdw_transition = 33.425  # LIW-WMDW transition boundary (adjusted based on deep water transition)
-            wmdw_limit = 33.435    # Below this, no WMDW (separated from transition for smoother mixing)
+            liw_wmdw_transition = 33.425  # LIW-WMDW transition boundary
+            wmdw_limit = 33.435    # Below this, no WMDW
    
-            # Define depth-dependent transition margins
-            def get_margins(depth):
-                aw_liw_base = 0.03    # Reduced base margin for sharper surface transition
-                liw_wmdw_base = 0.05  # Adjusted for deeper mixing
-                depth_factor = 1 + (np.abs(depth) / 1000) * 0.5  # Increases with depth
-                return {
-                    'aw_liw': aw_liw_base * depth_factor,
-                    'liw_wmdw': liw_wmdw_base * depth_factor
-                }
+            # Use fixed margins for stability
+            aw_liw_margin = 0.03    # Reduced margin for sharper surface transition
+            liw_wmdw_margin = 0.05  # Adjusted for deeper mixing
    
-            # Calculate margins for each point
-            margins = np.array([get_margins(d) for d in self.depth])
+            # Create density masks
+            aw_mask = self.potential_density1000 >= (aw_limit + aw_liw_margin)
+            wmdw_mask = self.potential_density1000 <= (wmdw_limit - liw_wmdw_margin)
    
-            # Create density masks with depth-dependent margins
-            aw_mask = self.potential_density1000 >= (aw_limit + margins['aw_liw'])
-            wmdw_mask = self.potential_density1000 <= (wmdw_limit - margins['liw_wmdw'])
+            # Transition masks
+            aw_liw_mask = ((self.potential_density1000 >= (aw_limit - aw_liw_margin)) & 
+                          (self.potential_density1000 <= (aw_limit + aw_liw_margin)))
    
-            # Transition masks with variable margins
-            aw_liw_mask = ((self.potential_density1000 >= (aw_limit - margins['aw_liw'])) & 
-                          (self.potential_density1000 <= (aw_limit + margins['aw_liw'])))
-   
-            liw_wmdw_mask = ((self.potential_density1000 >= (liw_wmdw_transition - margins['liw_wmdw'])) & 
-                            (self.potential_density1000 <= (liw_wmdw_transition + margins['liw_wmdw'])))
+            liw_wmdw_mask = ((self.potential_density1000 >= (liw_wmdw_transition - liw_wmdw_margin)) & 
+                            (self.potential_density1000 <= (liw_wmdw_transition + liw_wmdw_margin)))
    
             # Add salinity-based constraints for LIW core
             liw_core_mask = (self.absolute_salinity >= 38.7) & (self.absolute_salinity <= 38.8)
@@ -1140,20 +1131,20 @@ class OMPAProblem(object):
                 constraints.append({'type': 'ineq',
                                  'fun': lambda x: x[liw_core_mask, liw_index] - 0.6})  # Minimum 60% LIW in core
    
-            # AW-LIW transition handling with depth-dependent margins
+            # AW-LIW transition handling
             if np.any(aw_liw_mask):
-                aw_liw_ratio = (self.potential_density1000[aw_liw_mask] - (aw_limit - margins['aw_liw'][aw_liw_mask])) / \
-                              (2 * margins['aw_liw'][aw_liw_mask])
+                aw_liw_ratio = (self.potential_density1000[aw_liw_mask] - (aw_limit - aw_liw_margin)) / \
+                              (2 * aw_liw_margin)
                 constraints.append({'type': 'eq', 
                                  'fun': lambda x: x[aw_liw_mask, wmdw_index]})  # No WMDW in AW-LIW transition
                 constraints.append({'type': 'eq',
                                  'fun': lambda x: x[aw_liw_mask, aw_index] - aw_liw_ratio})
    
-            # LIW-WMDW transition handling with depth-dependent margins
+            # LIW-WMDW transition handling
             if np.any(liw_wmdw_mask):
                 liw_wmdw_ratio = (self.potential_density1000[liw_wmdw_mask] - 
-                                (liw_wmdw_transition - margins['liw_wmdw'][liw_wmdw_mask])) / \
-                                (2 * margins['liw_wmdw'][liw_wmdw_mask])
+                                (liw_wmdw_transition - liw_wmdw_margin)) / \
+                                (2 * liw_wmdw_margin)
                 constraints.append({'type': 'eq', 
                                  'fun': lambda x: x[liw_wmdw_mask, aw_index]})  # No AW in LIW-WMDW transition
                 constraints.append({'type': 'eq',
