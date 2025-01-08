@@ -1114,21 +1114,21 @@ class OMPAProblem(object):
                               (self.potential_density1000 <= (liw_wmdw_transition + liw_wmdw_margin)))
    
           # Main water mass constraints
-            constraints.append(x[aw_mask, aw_index] == 0)  # No AW above aw_limit
-            constraints.append(x[wmdw_mask, wmdw_index] == 0)  # No WMDW below wmdw_limit
+             constraints.append(x[aw_mask, aw_index] == 0)  # No AW above aw_limit
+             constraints.append(x[wmdw_mask, wmdw_index] == 0)  # No WMDW below wmdw_limit
    
           # Mass conservation constraints
-            constraints.append(x[aw_mask, liw_index] + x[aw_mask, wmdw_index] == 1)  # Above AW limit
-            constraints.append(x[wmdw_mask, aw_index] + x[wmdw_mask, liw_index] == 1)  # Below WMDW limit
+             constraints.append(x[aw_mask, liw_index] + x[aw_mask, wmdw_index] == 1)  # Above AW limit
+             constraints.append(x[wmdw_mask, aw_index] + x[wmdw_mask, liw_index] == 1)  # Below WMDW limit
    
           # AW-LIW transition handling
-            aw_liw_ratio = (self.potential_density1000[aw_liw_mask] - (aw_limit - aw_liw_margin)) / (2 * aw_liw_margin)
-            constraints.append(x[aw_liw_mask, wmdw_index] == 0)  # No WMDW in AW-LIW transition
+             aw_liw_ratio = (self.potential_density1000[aw_liw_mask] - (aw_limit - aw_liw_margin)) / (2 * aw_liw_margin)
+             constraints.append(x[aw_liw_mask, wmdw_index] == 0)  # No WMDW in AW-LIW transition
    
           # LIW-WMDW transition handling
-            liw_wmdw_ratio = (self.potential_density1000[liw_wmdw_mask] - (liw_wmdw_transition - liw_wmdw_margin)) / (2 * liw_wmdw_margin)
-            constraints.append(x[liw_wmdw_mask, aw_index] == 0)  # No AW in LIW-WMDW transition
-            constraints.append(x[liw_wmdw_mask, liw_index] + x[liw_wmdw_mask, wmdw_index] == 1)  # Mass conservation
+             liw_wmdw_ratio = (self.potential_density1000[liw_wmdw_mask] - (liw_wmdw_transition - liw_wmdw_margin)) / (2 * liw_wmdw_margin)
+             constraints.append(x[liw_wmdw_mask, aw_index] == 0)  # No AW in LIW-WMDW transition
+             constraints.append(x[liw_wmdw_mask, liw_index] + x[liw_wmdw_mask, wmdw_index] == 1)  # Mass conservation
 		
         prob = cp.Problem(obj, constraints)
         prob.solve(verbose=verbose, max_iter=max_iter)
