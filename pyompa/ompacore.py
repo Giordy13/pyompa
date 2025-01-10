@@ -1093,7 +1093,7 @@ class OMPAProblem(object):
              liw_index = 1
              wmdw_index = 2
 		
-             density_mask = self.potential_density1000 < 33.42    # Changed threshold
+             density_mask = self.potential_density1000 < 33.41    # Changed threshold
     
              constraints.append(cp.multiply(density_mask, x[:, wmdw_index]) == 0)  # No WMDW when density < 33.43
              constraints.append(cp.multiply(density_mask, x[:, aw_index] + x[:, liw_index]) == density_mask)  # AW + LIW = 1
