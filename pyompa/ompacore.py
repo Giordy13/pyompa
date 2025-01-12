@@ -1094,7 +1094,7 @@ class OMPAProblem(object):
            wmdw_index = 2
     
            # Define density thresholds
-           aw_density_limit = 33.35    # AW upper limit
+           aw_density_limit = 33.30   # AW upper limit
            wmdw_density_start = 33.43  # WMDW starts appearing
     
            # Create density masks
