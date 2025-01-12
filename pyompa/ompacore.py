@@ -1088,25 +1088,17 @@ class OMPAProblem(object):
 
     # Add the new density-dependent constraint
         if self.potential_density1000 is not None:
-           # Assuming the order of water masses is [AW, LIW, WMDW]
-           aw_index = 0
-           liw_index = 1
-           wmdw_index = 2
+            aw_index = 0
+            liw_index = 1
+            wmdw_index = 2
+            density_mask = self.potential_density1000 < 33.43    # Changed threshold
     
-           # Define density thresholds
-           aw_density_limit = 33.30   # AW upper limit
-           wmdw_density_start = 33.43  # WMDW starts appearing
+            constraints.append(cp.multiply(density_mask, x[:, wmdw_index]) == 0)  # No WMDW when density < 33.43
+            constraints.append(cp.multiply(density_mask, x[:, aw_index] + x[:, liw_index]) == density_mask)  # AW + LIW = 1
     
-           # Create density masks
-           aw_mask = self.potential_density1000 < aw_density_limit  # AW present only at lower densities
-           wmdw_mask = self.potential_density1000 >= wmdw_density_start  # WMDW at higher densities
-    
-           # Apply constraints
-           constraints.append(cp.multiply(aw_mask, x[:, wmdw_index]) == 0)  # No WMDW in low density
-           constraints.append(cp.multiply(aw_mask, x[:, aw_index] + x[:, liw_index]) == aw_mask)  # AW + LIW = 1
-    
-           constraints.append(cp.multiply(wmdw_mask, x[:, aw_index]) == 0)  # No AW in high density
-           constraints.append(cp.multiply(wmdw_mask, x[:, liw_index] + x[:, wmdw_index]) == wmdw_mask)  # LIW + WMDW = 1
+            high_density = self.potential_density1000 >= 33.43    
+            constraints.append(cp.multiply(high_density, x[:, aw_index]) == 0)  # No AW when density >= 33.43
+            constraints.append(cp.multiply(high_density, x[:, liw_index] + x[:, wmdw_index]) == high_density)  # LIW + WMDW = 1
 		
         prob = cp.Problem(obj, constraints)
         prob.solve(verbose=verbose, max_iter=max_iter)
