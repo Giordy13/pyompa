@@ -1087,7 +1087,7 @@ class OMPAProblem(object):
                   x[:,num_endmembers:]) >= 0)
 
     # Add the new density-dependent constraint
-        if self.potential_density1000 is not None:
+        if self.potential_density is not None:
             aw_index = 0
             liw_index = 1
             wmdw_index = 2
